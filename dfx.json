@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "dfx": "0.10.1",
+  "canisters": {
+    "rust_contracts_skeleton": {
+      "type": "rust",
+      "package": "rust_contracts_skeleton",
+      "candid": "src/rust_contracts_skeleton/rust_contracts_skeleton.did"
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": "",
+      "args": ""
+    }
+  },
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  }
+}
