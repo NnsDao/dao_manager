@@ -2,10 +2,10 @@
   "version": 1,
   "dfx": "0.10.1",
   "canisters": {
-    "rust_contracts_skeleton": {
+    "dao_manager": {
       "type": "rust",
-      "package": "rust_contracts_skeleton",
-      "candid": "src/rust_contracts_skeleton/rust_contracts_skeleton.did"
+      "package": "dao_manager",
+      "candid": "src/dao_manager/dao_manager.did"
     }
   },
   "defaults": {
