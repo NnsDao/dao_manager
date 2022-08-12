@@ -398,6 +398,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "dao_manager"
+version = "0.1.0"
+dependencies = [
+ "base32",
+ "candid",
+ "crc32fast",
+ "ic-cdk 0.5.2",
+ "ic-cdk-macros 0.5.2",
+ "ic-kit",
+ "ic-ledger-types",
+ "serde",
+ "serde_cbor",
+]
+
+[[package]]
 name = "data-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1141,21 +1156,6 @@ name = "regex-syntax"
 version = "0.6.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3f87b73ce11b1619a3c6332f45341e0047173771e8b8b73f87bfeefb7b56244"
-
-[[package]]
-name = "rust_contracts_skeleton"
-version = "0.1.0"
-dependencies = [
- "base32",
- "candid",
- "crc32fast",
- "ic-cdk 0.5.2",
- "ic-cdk-macros 0.5.2",
- "ic-kit",
- "ic-ledger-types",
- "serde",
- "serde_cbor",
-]
 
 [[package]]
 name = "rustversion"

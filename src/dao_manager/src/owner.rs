@@ -18,7 +18,7 @@ pub struct OwnerService {
 }
 
 impl OwnerService {
-    pub fn add_owner(&mut self, principal: Principal) -> () {
+    pub fn add_owner(&mut self, principal: Principal) {
         self.owners.push(principal)
     }
 
