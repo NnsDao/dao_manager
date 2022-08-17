@@ -24,7 +24,7 @@ pub enum DaoStatusCode {
 #[derive(Deserialize, Serialize, Default, Clone, CandidType)]
 pub struct CreateDaoInfo {
     name: String,                            // dao name
-    poster: String,                          //  dao poster
+    poster: String,                          // dao poster
     avatar: String,                          // dao avatar
     tags: Vec<String>,                       // dao tags
     intro: String,                           // dao intro

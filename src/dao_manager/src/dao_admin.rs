@@ -37,7 +37,7 @@ impl DaoAdmin {
         todo!();
         // create dao
         let dao_id: DaoID = 1;
-        let canister_id = Principal::from_text("xxx").unwrap();
+        let canister_id = Principal::from_text("w3p32-waaaa-aaaah-aboyq-cai").unwrap();
         if self.dao_exist(dao_id).is_ok() {
             return Err(String::from("The current DAO already exists"));
         }
