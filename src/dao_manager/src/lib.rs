@@ -3,6 +3,7 @@ mod heartbeat;
 mod init;
 mod owner;
 mod types;
+mod canister_manager;
 
 use dao_admin::DaoAdmin;
 use ic_cdk::api::stable::{StableReader, StableWriter};
