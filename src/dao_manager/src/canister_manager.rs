@@ -20,6 +20,7 @@ pub struct InstallCodeArgumentBorrowed<'a> {
 pub const WASM: &[u8] = include_bytes!("./dao/nnsdao.wasm.gz");
 
 /// Create a default store of 1T cycles
+/// 1T = 1_000_000_000_000
 pub async fn nnsdao_create_canister(mut contollers: Vec<Principal>, cycles: u128) -> Result<Principal, (RejectionCode, String)> {
     contollers.push(ic::id());
     let canister_id = create_canister(
@@ -37,7 +38,7 @@ pub async fn nnsdao_create_canister(mut contollers: Vec<Principal>, cycles: u128
 
     let need_deposit = cycles - 1_000_000_000_000;
 
-    if need_deposit > 0 {
+    if cycles > 0 && need_deposit > 0 {
         nnsdao_deposit_cycles(canister_id, need_deposit).await?;
     }
     
