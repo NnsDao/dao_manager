@@ -1,9 +1,12 @@
-use crate::canister_manager::{nnsdao_change_controller, nnsdao_create_canister};
+use crate::canister_manager::{
+    nnsdao_canister_status, nnsdao_change_controller, nnsdao_create_canister, nnsdao_install_code,
+};
 use crate::types::{
     Canister_id_text, ControllerAction, CreateDaoInfo, DaoID, DaoInfo, DaoStatusCode,
 };
-use candid::types::ic_types::principal;
+
 use candid::{Deserialize, Principal};
+use ic_kit::interfaces::management::CanisterStatusResponse;
 use ic_kit::RejectionCode;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -20,6 +23,12 @@ pub fn handle_tuple_err(err: (RejectionCode, String)) -> Result<(), String> {
 }
 
 impl DaoAdmin {
+    pub async fn dao_status(
+        &self,
+        canister_id: Principal,
+    ) -> Result<CanisterStatusResponse, (RejectionCode, String)> {
+        nnsdao_canister_status(canister_id).await
+    }
     fn dao_exist(&self, dao_id: DaoID) -> Result<(), String> {
         self.dao_map
             .get(&dao_id)
@@ -53,15 +62,24 @@ impl DaoAdmin {
         // create dao
         self.dao_index += 1;
         let dao_id = self.dao_index;
+        self.dao_exist(dao_id)?;
+
         let caller = ic_cdk::caller();
-        let canister_id: Principal;
-        unimplemented!("need cycles params");
-        match nnsdao_create_canister(vec![caller], 1).await {
-            Ok(canister) => {
-                canister_id = canister;
-            }
-            Err(err) => handle_tuple_err(err)?,
-        }
+        let cycles = 1_000_000_000_000;
+
+        let canister_id = nnsdao_create_canister(vec![caller], cycles)
+            .await
+            .or_else(|err| {
+                let (code, reason) = err;
+                Err(format!("RejectionCode:{:?}, reason: {:?}", code, reason))
+            })?;
+
+        nnsdao_install_code(caller, canister_id)
+            .await
+            .or_else(|err| {
+                let (code, reason) = err;
+                Err(format!("RejectionCode:{:?}, reason: {:?}", code, reason))
+            })?;
 
         let dao_info = DaoInfo {
             id: dao_id,
@@ -71,11 +89,7 @@ impl DaoAdmin {
             status: DaoStatusCode::Normal,
             tags: info.tags,
         };
-
-        // if self.dao_exist(dao_id).is_ok() {
-        //     return Err(String::from("The current DAO already exists"));
-        // }
-        self.dao_map.insert(dao_id, dao_info);
+        self.dao_map.insert(dao_id, dao_info.clone());
         Ok(dao_info)
     }
     pub async fn update_dao_controller(

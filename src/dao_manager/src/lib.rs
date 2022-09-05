@@ -9,7 +9,8 @@ use dao_admin::DaoAdmin;
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk::export::candid::Principal;
 use ic_cdk_macros::*;
-use ic_kit::ic;
+use ic_kit::interfaces::management::CanisterStatusResponse;
+use ic_kit::{ic, RejectionCode};
 use owner::{is_owner, OwnerService};
 use serde::{Deserialize, Serialize};
 use std::io::Read;
@@ -44,6 +45,15 @@ fn greet(name: String) -> String {
 fn dao_list() -> Vec<DaoInfo> {
     ic::get::<Data>().dao_admin.dao_list()
 }
+
+#[query]
+#[candid::candid_method(query)]
+async fn dao_status(
+    canister_id: Principal,
+) -> Result<CanisterStatusResponse, (RejectionCode, String)> {
+    ic::get::<Data>().dao_admin.dao_status(canister_id).await
+}
+
 #[update]
 #[candid::candid_method(update)]
 fn add_dao(canister_id: Canister_id_text, info: CreateDaoInfo) -> Result<DaoInfo, String> {
@@ -58,10 +68,11 @@ async fn create_dao(info: CreateDaoInfo) -> Result<DaoInfo, String> {
 
 #[update]
 #[candid::candid_method(update)]
-fn update_dao_controller(dao_id: DaoID, action: ControllerAction) -> Result<(), String> {
+async fn update_dao_controller(dao_id: DaoID, action: ControllerAction) -> Result<DaoInfo, String> {
     ic::get_mut::<Data>()
         .dao_admin
         .update_dao_controller(dao_id, action)
+        .await
 }
 
 #[query(guard = "is_owner")]
