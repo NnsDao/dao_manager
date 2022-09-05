@@ -1,9 +1,9 @@
+mod canister_manager;
 mod dao_admin;
 mod heartbeat;
 mod init;
 mod owner;
 mod types;
-mod canister_manager;
 
 use dao_admin::DaoAdmin;
 use ic_cdk::api::stable::{StableReader, StableWriter};
@@ -16,6 +16,8 @@ use std::io::Read;
 use std::result::Result;
 use std::string::String;
 use types::{ControllerAction, CreateDaoInfo, DaoID, DaoInfo};
+
+use crate::types::Canister_id_text;
 
 #[derive(Default)]
 pub struct Data {
@@ -44,14 +46,14 @@ fn dao_list() -> Vec<DaoInfo> {
 }
 #[update]
 #[candid::candid_method(update)]
-fn add_dao(dao_id: DaoID, canister_id: Principal) -> Result<(), String> {
-    ic::get_mut::<Data>().dao_admin.add_dao(dao_id, canister_id)
+fn add_dao(canister_id: Canister_id_text, info: CreateDaoInfo) -> Result<DaoInfo, String> {
+    ic::get_mut::<Data>().dao_admin.add_dao(canister_id, info)
 }
 
 #[update]
 #[candid::candid_method(update)]
-fn create_dao(info: CreateDaoInfo) -> Result<(), String> {
-    ic::get_mut::<Data>().dao_admin.create_dao(info)
+async fn create_dao(info: CreateDaoInfo) -> Result<DaoInfo, String> {
+    ic::get_mut::<Data>().dao_admin.create_dao(info).await
 }
 
 #[update]
