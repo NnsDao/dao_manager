@@ -2,7 +2,7 @@ use crate::canister_manager::{
     nnsdao_canister_status, nnsdao_change_controller, nnsdao_create_canister, nnsdao_install_code,
 };
 use crate::types::{
-    Canister_id_text, ControllerAction, CreateDaoInfo, DaoID, DaoInfo, DaoStatusCode,
+    CanisterIdText, ControllerAction, CreateDaoInfo, DaoID, DaoInfo, DaoStatusCode,
 };
 
 use candid::{Deserialize, Principal};
@@ -40,7 +40,7 @@ impl DaoAdmin {
     }
     pub fn add_dao(
         &mut self,
-        canister_id: Canister_id_text,
+        canister_id: CanisterIdText,
         info: CreateDaoInfo,
     ) -> Result<DaoInfo, String> {
         self.dao_index += 1;
@@ -69,16 +69,16 @@ impl DaoAdmin {
 
         let canister_id = nnsdao_create_canister(vec![caller], cycles)
             .await
-            .or_else(|err| {
+            .map_err(|err| {
                 let (code, reason) = err;
-                Err(format!("RejectionCode:{:?}, reason: {:?}", code, reason))
+                format!("RejectionCode:{:?}, reason: {:?}", code, reason)
             })?;
 
         nnsdao_install_code(caller, canister_id)
             .await
-            .or_else(|err| {
+            .map_err(|err| {
                 let (code, reason) = err;
-                Err(format!("RejectionCode:{:?}, reason: {:?}", code, reason))
+                format!("RejectionCode:{:?}, reason: {:?}", code, reason)
             })?;
 
         let dao_info = DaoInfo {

@@ -3,6 +3,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 
 pub type PrincipalText = String;
+pub type CanisterIdText = String;
 
 pub type DaoID = u128;
 #[derive(Deserialize, Serialize, Clone, CandidType)]
@@ -38,4 +39,3 @@ pub enum ControllerAction {
     remove(Principal),
     clear,
 }
-pub type Canister_id_text = String;

@@ -18,7 +18,7 @@ use std::result::Result;
 use std::string::String;
 use types::{ControllerAction, CreateDaoInfo, DaoID, DaoInfo};
 
-use crate::types::Canister_id_text;
+use crate::types::{CanisterIdText, PrincipalText};
 
 #[derive(Default)]
 pub struct Data {
@@ -36,12 +36,6 @@ pub struct DataV0 {
 
 #[query]
 #[candid::candid_method(query)]
-fn greet(name: String) -> String {
-    format!("Hello, {}!", name)
-}
-
-#[query]
-#[candid::candid_method(query)]
 fn dao_list() -> Vec<DaoInfo> {
     ic::get::<Data>().dao_admin.dao_list()
 }
@@ -49,14 +43,17 @@ fn dao_list() -> Vec<DaoInfo> {
 #[query]
 #[candid::candid_method(query)]
 async fn dao_status(
-    canister_id: Principal,
+    canister_id: CanisterIdText,
 ) -> Result<CanisterStatusResponse, (RejectionCode, String)> {
-    ic::get::<Data>().dao_admin.dao_status(canister_id).await
+    ic::get::<Data>()
+        .dao_admin
+        .dao_status(Principal::from_text(canister_id).unwrap())
+        .await
 }
 
 #[update]
 #[candid::candid_method(update)]
-fn add_dao(canister_id: Canister_id_text, info: CreateDaoInfo) -> Result<DaoInfo, String> {
+fn add_dao(canister_id: CanisterIdText, info: CreateDaoInfo) -> Result<DaoInfo, String> {
     ic::get_mut::<Data>().dao_admin.add_dao(canister_id, info)
 }
 
