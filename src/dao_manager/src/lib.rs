@@ -1,3 +1,4 @@
+mod canister;
 mod canister_manager;
 mod dao_admin;
 mod heartbeat;
@@ -117,4 +118,62 @@ candid::export_service!();
 #[query(name = "__get_candid_interface_tmp_hack")]
 fn export_candid() -> String {
     __export_service()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::canister::ledger::icp_balance;
+
+    use super::*;
+
+    #[test]
+    fn candid_transform() {
+        let amount = 1_00_000_000_u128;
+        println!("amount is {}", amount);
+        let amount_bytes = amount.to_be_bytes();
+
+        println!("bytes is {:?}", amount_bytes);
+        match candid::Nat::parse(&amount_bytes) {
+            Ok(num) => {
+                println!("Nat is {}", num);
+            }
+            Err(err) => {
+                println!("err occured is {}", err);
+            }
+        };
+        let amount = amount.to_string();
+        println!("string amount is {}", amount);
+        match candid::Nat::from_str(&amount) {
+            Ok(num) => {
+                println!("Nat is {}", num);
+            }
+            Err(err) => {
+                println!("err occured is {}", err);
+            }
+        };
+    }
+    #[test]
+    fn get_icp() {
+        async {
+            let balance = icp_balance(
+                Principal::from_text(
+                    "c526v-pnjpe-x57vs-xe3qb-idgh7-xre3a-jdzef-l654c-5sg4x-5iigp-xae",
+                )
+                .unwrap(),
+                None,
+            )
+            .await;
+
+            match balance {
+                Ok(num) => {
+                    println!("num is {}", num);
+                }
+                Err(err) => {
+                    println!("balance err is {}", err);
+                }
+            };
+        };
+    }
 }

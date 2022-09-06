@@ -1,10 +1,10 @@
+use crate::canister::dip20;
 use crate::canister_manager::{
     nnsdao_canister_status, nnsdao_change_controller, nnsdao_create_canister, nnsdao_install_code,
 };
 use crate::types::{
     CanisterIdText, ControllerAction, CreateDaoInfo, DaoID, DaoInfo, DaoStatusCode,
 };
-
 use candid::{Deserialize, Principal};
 use ic_kit::interfaces::management::CanisterStatusResponse;
 use ic_kit::RejectionCode;
@@ -65,7 +65,20 @@ impl DaoAdmin {
         self.dao_exist(dao_id)?;
 
         let caller = ic_cdk::caller();
+        // 1T
         let cycles = 1_000_000_000_000;
+
+        // transer 1ICP
+        let dip_client =
+            dip20::SERVICE::new(Principal::from_text("vgqnj-miaaa-aaaal-qaapa-cai").unwrap());
+        let balance = dip_client.balanceOf(caller).await.unwrap();
+        let amount = 100_000_000_u128.to_be_bytes();
+        let amount = candid::Nat::parse(&amount)
+            .map_err(|_| format!("Invalid amount at transfer {:?}", amount))?;
+
+        if balance.0 < amount {
+            return Err(String::from("Insufficient balance!"));
+        }
 
         let canister_id = nnsdao_create_canister(vec![caller], cycles)
             .await
