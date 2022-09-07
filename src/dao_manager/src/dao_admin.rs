@@ -67,7 +67,7 @@ impl DaoAdmin {
         // validate transfer
         ic::get_mut::<Data>()
             .icp_service
-            .validate_transfer(info.block_height, info.memo)
+            .validate_transfer(info.block_height, info.memo, None)
             .await?;
 
         let caller = ic_cdk::caller();
@@ -98,6 +98,11 @@ impl DaoAdmin {
             tags: info.tags,
         };
         self.dao_map.insert(dao_id, dao_info.clone());
+        // set transaction status 1
+        ic::get_mut::<Data>()
+            .icp_service
+            .validate_transfer(info.block_height, info.memo, Some(1))
+            .await?;
         Ok(dao_info)
     }
     pub async fn update_dao_controller(

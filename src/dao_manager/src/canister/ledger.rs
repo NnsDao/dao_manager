@@ -42,6 +42,7 @@ impl ICPService {
         &mut self,
         block_height: u64,
         memo: u64,
+        status: Option<u8>,
     ) -> Result<bool, String> {
         let caller = ic_cdk::caller();
         let from =
@@ -55,8 +56,12 @@ impl ICPService {
                 && transaction.status == 0
                 && transaction.to == to
             {
-                // transaction.status = 1; after crated dao, set to 1
-                return check_transfer(from, to, block_height, memo, transaction.amount).await;
+                if status.is_some() {
+                    transaction.status = status.unwrap_or(1); // after crated dao, set to 1
+                    return Ok(true);
+                } else {
+                    return check_transfer(from, to, block_height, memo, transaction.amount).await;
+                }
             }
         }
         Err(format!(
