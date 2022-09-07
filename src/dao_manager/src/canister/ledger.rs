@@ -2,7 +2,6 @@ use candid::{CandidType, Deserialize};
 use dfn_core::api::call_with_cleanup;
 use dfn_protobuf::{protobuf, ProtoBuf};
 
-use ic_cdk::export::candid::Principal;
 use on_wire::FromWire;
 
 use ic_ledger_types::AccountIdentifier;
@@ -27,7 +26,7 @@ impl ICPService {
             AccountIdentifier::new(&caller, &ic_ledger_types::DEFAULT_SUBACCOUNT).to_string();
 
         let memo = subnet_raw_rand().await?;
-        let amount = 100_000_000_u64;
+        let amount = 10_000_000_u64;
         let item = TransactionItem {
             from,
             to,

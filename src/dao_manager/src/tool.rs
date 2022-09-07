@@ -1,5 +1,4 @@
 use ic_cdk::export::Principal;
-use ic_kit::ic;
 
 pub fn encode_token(canister_id: Principal, token: u32) -> String {
     let prefix: Vec<u8> = vec![10, 116, 105, 100];
