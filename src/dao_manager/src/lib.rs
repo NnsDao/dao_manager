@@ -4,6 +4,7 @@ mod dao_admin;
 mod heartbeat;
 mod init;
 mod owner;
+pub mod tool;
 mod types;
 
 use dao_admin::DaoAdmin;
@@ -19,12 +20,14 @@ use std::result::Result;
 use std::string::String;
 use types::{ControllerAction, CreateDaoInfo, DaoID, DaoInfo};
 
-use crate::types::{CanisterIdText, PrincipalText};
+use crate::canister::ledger::{ICPService, TransactionItem};
+use crate::types::{AddDaoInfo, CanisterIdText};
 
 #[derive(Default)]
 pub struct Data {
     pub owners: OwnerService,
     pub dao_admin: DaoAdmin,
+    pub icp_service: ICPService,
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -33,6 +36,8 @@ pub struct DataV0 {
     pub owners: OwnerService,
     #[serde(default)]
     pub dao_admin: DaoAdmin,
+    #[serde(default)]
+    pub icp_service: ICPService,
 }
 
 #[query]
@@ -52,9 +57,15 @@ async fn dao_status(
         .await
 }
 
+#[query]
+#[candid::candid_method(query)]
+async fn get_pay_info() -> Result<TransactionItem, String> {
+    ic::get_mut::<Data>().icp_service.get_pay_info().await
+}
+
 #[update]
 #[candid::candid_method(update)]
-fn add_dao(canister_id: CanisterIdText, info: CreateDaoInfo) -> Result<DaoInfo, String> {
+fn add_dao(canister_id: CanisterIdText, info: AddDaoInfo) -> Result<DaoInfo, String> {
     ic::get_mut::<Data>().dao_admin.add_dao(canister_id, info)
 }
 
@@ -89,6 +100,7 @@ fn pre_upgrade() {
         &DataV0 {
             owners: data.owners.clone(),
             dao_admin: data.dao_admin.clone(),
+            icp_service: data.icp_service.clone(),
         },
     )
     .expect("Failed to serialize data.");
@@ -110,6 +122,7 @@ fn post_upgrade() {
     ic::store(Data {
         owners: data.owners,
         dao_admin: data.dao_admin,
+        icp_service: data.icp_service,
     });
 }
 
@@ -118,62 +131,4 @@ candid::export_service!();
 #[query(name = "__get_candid_interface_tmp_hack")]
 fn export_candid() -> String {
     __export_service()
-}
-
-#[cfg(test)]
-mod tests {
-    use std::str::FromStr;
-
-    use crate::canister::ledger::icp_balance;
-
-    use super::*;
-
-    #[test]
-    fn candid_transform() {
-        let amount = 1_00_000_000_u128;
-        println!("amount is {}", amount);
-        let amount_bytes = amount.to_be_bytes();
-
-        println!("bytes is {:?}", amount_bytes);
-        match candid::Nat::parse(&amount_bytes) {
-            Ok(num) => {
-                println!("Nat is {}", num);
-            }
-            Err(err) => {
-                println!("err occured is {}", err);
-            }
-        };
-        let amount = amount.to_string();
-        println!("string amount is {}", amount);
-        match candid::Nat::from_str(&amount) {
-            Ok(num) => {
-                println!("Nat is {}", num);
-            }
-            Err(err) => {
-                println!("err occured is {}", err);
-            }
-        };
-    }
-    #[test]
-    fn get_icp() {
-        async {
-            let balance = icp_balance(
-                Principal::from_text(
-                    "c526v-pnjpe-x57vs-xe3qb-idgh7-xre3a-jdzef-l654c-5sg4x-5iigp-xae",
-                )
-                .unwrap(),
-                None,
-            )
-            .await;
-
-            match balance {
-                Ok(num) => {
-                    println!("num is {}", num);
-                }
-                Err(err) => {
-                    println!("balance err is {}", err);
-                }
-            };
-        };
-    }
 }

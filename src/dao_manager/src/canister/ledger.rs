@@ -1,48 +1,121 @@
+use candid::{CandidType, Deserialize};
+use dfn_core::api::call_with_cleanup;
+use dfn_protobuf::{protobuf, ProtoBuf};
+
 use ic_cdk::export::candid::Principal;
+use on_wire::FromWire;
 
-use ic_ledger_types::{
-    AccountBalanceArgs, AccountIdentifier, BlockIndex, Memo, Subaccount, Tokens, TransferArgs,
-    DEFAULT_FEE, DEFAULT_SUBACCOUNT, MAINNET_LEDGER_CANISTER_ID,
-};
+use ic_ledger_types::AccountIdentifier;
+use ic_nns_constants::LEDGER_CANISTER_ID;
 
-pub async fn icp_balance(
-    user: Principal,
-    user_subaccount: Option<Subaccount>,
-) -> Result<u128, String> {
-    let arg = AccountBalanceArgs {
-        account: AccountIdentifier::new(&user, &user_subaccount.unwrap_or(DEFAULT_SUBACCOUNT)),
-    };
+use ledger_canister::{Block, BlockArg, BlockRes, Memo, Operation};
+use serde::Serialize;
 
-    let tokens = ic_ledger_types::account_balance(MAINNET_LEDGER_CANISTER_ID, arg)
-        .await
-        .map_err(|e| format!("failed to call ledger: {:?}", e));
+use crate::tool::subnet_raw_rand;
 
-    match tokens {
-        Ok(t) => Ok(t.e8s() as u128),
-        Err(err) => Err(err),
-    }
-
-    // return Ok(100000000);
+#[derive(Serialize, CandidType, Deserialize, Default, Clone)]
+pub struct ICPService {
+    pub transactions: Vec<TransactionItem>,
 }
 
-pub async fn icp_transfer(
-    from_sub_account: Option<Subaccount>,
-    to: Principal,
-    to_sub_account: Option<Subaccount>,
-    amount: u64,
-    memo: Memo,
-) -> Result<BlockIndex, String> {
-    let arg = TransferArgs {
-        memo,
-        amount: Tokens::from_e8s(amount),
-        fee: DEFAULT_FEE,
-        from_subaccount: from_sub_account,
-        to: AccountIdentifier::new(&to, &to_sub_account.unwrap_or(DEFAULT_SUBACCOUNT)),
-        created_at_time: None,
-    };
+impl ICPService {
+    pub async fn get_pay_info(&mut self) -> Result<TransactionItem, String> {
+        let to = AccountIdentifier::new(&ic_cdk::api::id(), &ic_ledger_types::DEFAULT_SUBACCOUNT)
+            .to_string();
+        let caller = ic_cdk::caller();
+        let from =
+            AccountIdentifier::new(&caller, &ic_ledger_types::DEFAULT_SUBACCOUNT).to_string();
 
-    ic_ledger_types::transfer(MAINNET_LEDGER_CANISTER_ID, arg)
-        .await
-        .map_err(|e| format!("failed to call ledger: {:?}", e))?
-        .map_err(|e| format!("ledger transfer error {:?}", e))
+        let memo = subnet_raw_rand().await?;
+        let amount = 100_000_000_u64;
+        let item = TransactionItem {
+            from,
+            to,
+            memo,
+            amount,
+            status: 0,
+        };
+        self.transactions.push(item.clone());
+        Ok(item)
+    }
+    pub async fn validate_transfer(
+        &mut self,
+        block_height: u64,
+        memo: u64,
+    ) -> Result<bool, String> {
+        let caller = ic_cdk::caller();
+        let from =
+            AccountIdentifier::new(&caller, &ic_ledger_types::DEFAULT_SUBACCOUNT).to_string();
+        let to = AccountIdentifier::new(&ic_cdk::api::id(), &ic_ledger_types::DEFAULT_SUBACCOUNT)
+            .to_string();
+
+        for transaction in &mut self.transactions {
+            if transaction.from == from
+                && memo == transaction.memo
+                && transaction.status == 0
+                && transaction.to == to
+            {
+                // transaction.status = 1; after crated dao, set to 1
+                return check_transfer(from, to, block_height, memo, transaction.amount).await;
+            }
+        }
+        Err(format!(
+            "Invalid transfer params, block_height: {},memo: {}",
+            block_height, memo
+        ))
+    }
+}
+
+#[derive(Serialize, Clone, CandidType, Deserialize, Default)]
+pub struct TransactionItem {
+    from: String,
+    to: String,
+    memo: u64,
+    amount: u64,
+    status: u8, // 0 to_pay | 1 paid
+}
+
+pub async fn get_block(block_height: u64) -> Result<Block, String> {
+    let BlockRes(res) = call_with_cleanup(
+        LEDGER_CANISTER_ID,
+        "block_pb",
+        protobuf,
+        BlockArg(block_height),
+    )
+    .await
+    .map_err(|e| format!("Failed to fetch block {}", e.1))?;
+    let res = res.ok_or("Block not found")?;
+
+    res.map_or_else(
+        |canister_id| Err(format!("canisterId is {:?}", canister_id)),
+        |encoded_block| {
+            let bytes = encoded_block.into_vec();
+            Ok(ProtoBuf::from_bytes(bytes)?.get())
+        },
+    )
+}
+pub async fn check_transfer(
+    payer: String,
+    receiver: String,
+    block_height: u64,
+    memo: u64,
+    price: u64,
+) -> Result<bool, String> {
+    let block = get_block(block_height).await?;
+    match block.transaction.operation {
+        Operation::Transfer {
+            from, to, amount, ..
+        } => {
+            if to.to_string() == receiver
+                && from.to_string() == payer
+                && amount.get_e8s() == price
+                && block.transaction.memo == Memo(memo)
+            {
+                Ok(true)
+            } else {
+                Err("Transaction discipline query failed".to_string())
+            }
+        }
+        _ => Err("Transaction discipline query failed".to_string()),
+    }
 }
