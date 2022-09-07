@@ -57,8 +57,8 @@ async fn dao_status(
         .await
 }
 
-#[query]
-#[candid::candid_method(query)]
+#[update]
+#[candid::candid_method(update)]
 async fn get_pay_info() -> Result<TransactionItem, String> {
     ic::get_mut::<Data>().icp_service.get_pay_info().await
 }
