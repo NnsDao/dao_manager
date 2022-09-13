@@ -1,4 +1,4 @@
-use candid::{CandidType, Deserialize};
+use candid::{CandidType, Deserialize, Principal};
 use dfn_core::api::call_with_cleanup;
 use dfn_protobuf::{protobuf, ProtoBuf};
 
@@ -12,7 +12,7 @@ use serde::Serialize;
 
 use crate::tool::subnet_raw_rand;
 
-#[derive(Serialize, CandidType, Deserialize, Default, Clone)]
+#[derive(Serialize, CandidType, Deserialize, Default, Clone, Debug)]
 pub struct ICPService {
     pub transactions: Vec<TransactionItem>,
 }
@@ -39,11 +39,11 @@ impl ICPService {
     }
     pub async fn validate_transfer(
         &mut self,
+        caller: Principal,
         block_height: u64,
         memo: u64,
         status: Option<u8>,
     ) -> Result<bool, String> {
-        let caller = ic_cdk::caller();
         let from =
             AccountIdentifier::new(&caller, &ic_ledger_types::DEFAULT_SUBACCOUNT).to_string();
         let to = AccountIdentifier::new(&ic_cdk::api::id(), &ic_ledger_types::DEFAULT_SUBACCOUNT)
@@ -64,13 +64,16 @@ impl ICPService {
             }
         }
         Err(format!(
-            "Invalid transfer params, block_height: {},memo: {}",
-            block_height, memo
+            "Invalid transfer params, from: {} ,to: {}, block_height: {},memo: {}",
+            from, to, block_height, memo
         ))
+    }
+    pub fn transaction_log(&self) -> Vec<TransactionItem> {
+        self.transactions.clone()
     }
 }
 
-#[derive(Serialize, Clone, CandidType, Deserialize, Default)]
+#[derive(Serialize, Clone, CandidType, Deserialize, Default, Debug)]
 pub struct TransactionItem {
     from: String,
     to: String,

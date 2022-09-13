@@ -57,6 +57,12 @@ async fn dao_status(
         .await
 }
 
+#[query]
+#[candid::candid_method(query)]
+fn transaction_log() -> Vec<TransactionItem> {
+    ic::get::<Data>().icp_service.transaction_log()
+}
+
 #[update]
 #[candid::candid_method(update)]
 async fn get_pay_info() -> Result<TransactionItem, String> {

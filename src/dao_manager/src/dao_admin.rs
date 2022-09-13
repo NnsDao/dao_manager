@@ -29,11 +29,11 @@ impl DaoAdmin {
     ) -> Result<CanisterStatusResponse, (RejectionCode, String)> {
         nnsdao_canister_status(canister_id).await
     }
-    fn dao_exist(&self, dao_id: DaoID) -> Result<(), String> {
+    fn dao_exist(&self, dao_id: DaoID) -> Result<bool, String> {
         self.dao_map
             .get(&dao_id)
-            .expect("Current DAO does not exist");
-        Ok(())
+            .ok_or("Current DAO does not exist")?;
+        Ok(true)
     }
     pub fn dao_list(&self) -> Vec<DaoInfo> {
         self.dao_map.clone().into_values().collect()
@@ -45,7 +45,7 @@ impl DaoAdmin {
     ) -> Result<DaoInfo, String> {
         self.dao_index += 1;
         let dao_id = self.dao_index;
-        self.dao_exist(dao_id)?;
+        // self.dao_exist(dao_id)?;
         let canister_id = Principal::from_text(canister_id).unwrap();
         let dao_info = DaoInfo {
             id: dao_id,
@@ -62,19 +62,20 @@ impl DaoAdmin {
         // create dao
         self.dao_index += 1;
         let dao_id = self.dao_index;
-        self.dao_exist(dao_id)?;
-
-        // validate transfer
-        ic::get_mut::<Data>()
-            .icp_service
-            .validate_transfer(info.block_height, info.memo, None)
-            .await?;
+        // self.dao_exist(dao_id)?;
 
         let caller = ic_cdk::caller();
+
+        // validate transfer
+        // transer 1ICP
+        ic::get_mut::<Data>()
+            .icp_service
+            .validate_transfer(caller, info.block_height, info.memo, None)
+            .await?;
+
         // 1T
         let cycles = 1_000_000_000_000;
 
-        // transer 1ICP
         let canister_id = nnsdao_create_canister(vec![caller], cycles)
             .await
             .map_err(|err| {
@@ -101,7 +102,7 @@ impl DaoAdmin {
         // set transaction status 1
         ic::get_mut::<Data>()
             .icp_service
-            .validate_transfer(info.block_height, info.memo, Some(1))
+            .validate_transfer(caller, info.block_height, info.memo, Some(1))
             .await?;
         Ok(dao_info)
     }
