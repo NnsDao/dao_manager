@@ -96,6 +96,12 @@ fn get_owner() -> Vec<Principal> {
     ic::get::<Data>().owners.get_owners()
 }
 
+#[update(guard = "is_owner")]
+#[candid::candid_method(update)]
+async fn upgrade_canister() -> Result<(), (RejectionCode, String)> {
+    ic::get::<Data>().dao_admin.upgrade_canister().await
+}
+
 #[pre_upgrade]
 fn pre_upgrade() {
     let data = ic::get::<Data>();
