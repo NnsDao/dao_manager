@@ -24,15 +24,15 @@ pub enum DaoStatusCode {
 }
 
 #[derive(Deserialize, Serialize, Default, Clone, CandidType)]
-pub struct CreateDaoInfo {
-    name: String,                            // dao name
-    poster: String,                          // dao poster
-    avatar: String,                          // dao avatar
-    pub tags: Vec<String>,                   // dao tags
-    intro: String,                           // dao intro
-    option: Option<HashMap<String, String>>, // user custom expand field
-    pub block_height: u64,                   // block height
-    pub memo: u64,                           // memo, used to validate transfer
+pub struct CreateDaoOptions {
+    // name: String,                            // dao name
+    // poster: String,                          // dao poster
+    // avatar: String,                          // dao avatar
+    // intro: String,                           // dao intro
+    // option: Option<HashMap<String, String>>, // user custom expand field
+    pub tags: Vec<String>, // dao tags
+    pub block_height: u64, // block height
+    pub memo: u64,         // memo, used to validate transfer
 }
 
 #[derive(Deserialize, Serialize, Default, Clone, CandidType)]

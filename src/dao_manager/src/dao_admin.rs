@@ -3,7 +3,7 @@ use crate::canister_manager::{
     nnsdao_upgrade_code,
 };
 use crate::types::{
-    AddDaoInfo, CanisterIdText, ControllerAction, CreateDaoInfo, DaoID, DaoInfo, DaoStatusCode,
+    AddDaoInfo, CanisterIdText, ControllerAction, CreateDaoOptions, DaoID, DaoInfo, DaoStatusCode,
 };
 use crate::Data;
 use candid::{Deserialize, Principal};
@@ -65,7 +65,7 @@ impl DaoAdmin {
         self.dao_map.insert(dao_id, dao_info.clone());
         Ok(dao_info)
     }
-    pub async fn create_dao(&mut self, info: CreateDaoInfo) -> Result<DaoInfo, String> {
+    pub async fn create_dao(&mut self, info: CreateDaoOptions) -> Result<DaoInfo, String> {
         // create dao
         self.dao_index += 1;
         let dao_id = self.dao_index;
