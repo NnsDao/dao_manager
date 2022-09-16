@@ -102,6 +102,12 @@ async fn upgrade_canister() -> Result<(), (RejectionCode, String)> {
     ic::get::<Data>().dao_admin.upgrade_canister().await
 }
 
+#[update(guard = "is_owner")]
+#[candid::candid_method(update)]
+async fn reinstall_canister() -> Result<(), (RejectionCode, String)> {
+    ic::get::<Data>().dao_admin.reinstall_canister().await
+}
+
 #[pre_upgrade]
 fn pre_upgrade() {
     let data = ic::get::<Data>();

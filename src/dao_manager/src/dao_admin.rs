@@ -1,6 +1,6 @@
 use crate::canister_manager::{
     nnsdao_canister_status, nnsdao_change_controller, nnsdao_create_canister, nnsdao_install_code,
-    nnsdao_upgrade_code,
+    nnsdao_reinstall_code, nnsdao_upgrade_code,
 };
 use crate::types::{
     AddDaoInfo, CanisterIdText, ControllerAction, CreateDaoOptions, DaoID, DaoInfo, DaoStatusCode,
@@ -27,6 +27,12 @@ impl DaoAdmin {
     pub async fn upgrade_canister(&self) -> Result<(), (RejectionCode, String)> {
         for (_, dao_info) in self.dao_map.iter() {
             nnsdao_upgrade_code(dao_info.canister_id).await?
+        }
+        Ok(())
+    }
+    pub async fn reinstall_canister(&self) -> Result<(), (RejectionCode, String)> {
+        for (_, dao_info) in self.dao_map.iter() {
+            nnsdao_reinstall_code(ic_cdk::caller(), dao_info.canister_id).await?
         }
         Ok(())
     }
