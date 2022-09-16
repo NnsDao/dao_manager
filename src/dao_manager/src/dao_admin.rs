@@ -31,8 +31,9 @@ impl DaoAdmin {
         Ok(())
     }
     pub async fn reinstall_canister(&self) -> Result<(), (RejectionCode, String)> {
+        let caller = ic_cdk::caller();
         for (_, dao_info) in self.dao_map.iter() {
-            nnsdao_reinstall_code(ic_cdk::caller(), dao_info.canister_id).await?
+            nnsdao_reinstall_code(caller, dao_info.canister_id).await?
         }
         Ok(())
     }
