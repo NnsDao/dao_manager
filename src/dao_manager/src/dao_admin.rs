@@ -7,6 +7,7 @@ use crate::types::{
 };
 use crate::Data;
 use candid::{Deserialize, Principal};
+use ic_cdk::api::time;
 use ic_kit::interfaces::management::CanisterStatusResponse;
 use ic_kit::{ic, RejectionCode};
 use serde::Serialize;
@@ -66,8 +67,9 @@ impl DaoAdmin {
             owner: ic_cdk::caller(),
             canister_id,
             controller: vec![canister_id],
-            status: DaoStatusCode::Normal,
+            status: DaoStatusCode::Active,
             tags: info.tags,
+            create_at: time(),
         };
         self.dao_map.insert(dao_id, dao_info.clone());
         Ok(dao_info)
@@ -109,8 +111,10 @@ impl DaoAdmin {
             owner: caller,
             canister_id,
             controller: vec![canister_id],
-            status: DaoStatusCode::Normal,
+            status: DaoStatusCode::Active,
             tags: info.tags,
+            create_at: time()
+            
         };
         self.dao_map.insert(dao_id, dao_info.clone());
         // set transaction status 1

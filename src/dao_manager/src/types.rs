@@ -13,14 +13,15 @@ pub struct DaoInfo {
     pub canister_id: Principal,
     pub controller: Vec<Principal>,
     pub status: DaoStatusCode,
+    pub create_at:u64,
     // pub dao_type: String, // different Type of dao, such as education, music
     pub tags: Vec<String>, // type
 }
 
 #[derive(Deserialize, Serialize, Clone, CandidType)]
 pub enum DaoStatusCode {
-    Normal = 0,
-    Closed = -1,
+    Active,
+    Stopped
 }
 
 #[derive(Deserialize, Serialize, Default, Clone, CandidType)]
