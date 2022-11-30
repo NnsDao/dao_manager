@@ -2,13 +2,10 @@ use candid::{CandidType, Deserialize, Principal};
 use serde::Serialize;
 use std::collections::HashMap;
 
-pub type PrincipalText = String;
 pub type CanisterIdText = String;
 
-pub type DaoID = u128;
 #[derive(Deserialize, Serialize, Clone, CandidType)]
 pub struct DaoInfo {
-    pub id: DaoID,
     pub owner: Principal,
     pub canister_id: Principal,
     pub controller: Vec<Principal>,

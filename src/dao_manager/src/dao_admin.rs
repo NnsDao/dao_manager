@@ -3,7 +3,7 @@ use crate::canister_manager::{
     nnsdao_reinstall_code, nnsdao_upgrade_code,
 };
 use crate::types::{
-    AddDaoInfo, CanisterIdText, ControllerAction, CreateDaoOptions, DaoID, DaoInfo, DaoStatusCode,
+    AddDaoInfo, CanisterIdText, ControllerAction, CreateDaoOptions, DaoInfo, DaoStatusCode,
 };
 use crate::Data;
 use candid::{Deserialize, Principal};
@@ -17,8 +17,7 @@ use std::vec;
 
 #[derive(Deserialize, Serialize, Default, Clone)]
 pub struct DaoAdmin {
-    pub dao_map: HashMap<DaoID, DaoInfo>,
-    pub dao_index: DaoID,
+    pub dao_map: HashMap<Principal, DaoInfo>,
 }
 pub fn handle_tuple_err(err: (RejectionCode, String)) -> Result<(), String> {
     let (code, reason) = err;
@@ -45,9 +44,9 @@ impl DaoAdmin {
     ) -> Result<CanisterStatusResponse, (RejectionCode, String)> {
         nnsdao_canister_status(canister_id).await
     }
-    fn dao_exist(&self, dao_id: DaoID) -> Result<bool, String> {
+    fn dao_exist(&self, canister_id:Principal) -> Result<bool, String> {
         self.dao_map
-            .get(&dao_id)
+            .get(&canister_id)
             .ok_or("Current DAO does not exist")?;
         Ok(true)
     }
@@ -59,12 +58,9 @@ impl DaoAdmin {
         canister_id: CanisterIdText,
         info: AddDaoInfo,
     ) -> Result<DaoInfo, String> {
-        self.dao_index += 1;
-        let dao_id = self.dao_index;
         // self.dao_exist(dao_id)?;
         let canister_id = Principal::from_text(canister_id).unwrap();
         let dao_info = DaoInfo {
-            id: dao_id,
             owner: ic_cdk::caller(),
             canister_id,
             controller: vec![canister_id],
@@ -72,13 +68,11 @@ impl DaoAdmin {
             tags: info.tags,
             create_at: time(),
         };
-        self.dao_map.insert(dao_id, dao_info.clone());
+        self.dao_map.insert(canister_id, dao_info.clone());
         Ok(dao_info)
     }
     pub async fn create_dao(&mut self, info: CreateDaoOptions) -> Result<DaoInfo, String> {
         // create dao
-        self.dao_index += 1;
-        let dao_id = self.dao_index;
         // self.dao_exist(dao_id)?;
 
         let caller = ic_cdk::caller();
@@ -108,7 +102,6 @@ impl DaoAdmin {
             })?;
 
         let dao_info = DaoInfo {
-            id: dao_id,
             owner: caller,
             canister_id,
             controller: vec![caller],
@@ -117,7 +110,7 @@ impl DaoAdmin {
             create_at: time()
             
         };
-        self.dao_map.insert(dao_id, dao_info.clone());
+        self.dao_map.insert(canister_id, dao_info.clone());
         // set transaction status 1
         ic::get_mut::<Data>()
             .icp_service
@@ -127,13 +120,13 @@ impl DaoAdmin {
     }
     pub async fn update_dao_controller(
         &mut self,
-        dao_id: DaoID,
+        canister_id: Principal,
         action: ControllerAction,
     ) -> Result<DaoInfo, String> {
         // if exist
         let dao = self
             .dao_map
-            .get_mut(&dao_id)
+            .get_mut(&canister_id)
             .expect("Current DAO does not exist");
 
         // validate controller

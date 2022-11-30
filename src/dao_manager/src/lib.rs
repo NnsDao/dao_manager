@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 use std::io::Read;
 use std::result::Result;
 use std::string::String;
-use types::{ControllerAction, CreateDaoOptions, DaoID, DaoInfo};
+use types::{ControllerAction, CreateDaoOptions, DaoInfo};
 
 use crate::canister::ledger::{ICPService, TransactionItem};
 use crate::types::{AddDaoInfo, CanisterIdText};
@@ -83,10 +83,10 @@ async fn create_dao(info: CreateDaoOptions) -> Result<DaoInfo, String> {
 
 #[update]
 #[candid::candid_method(update)]
-async fn update_dao_controller(dao_id: DaoID, action: ControllerAction) -> Result<DaoInfo, String> {
+async fn update_dao_controller(canister_id: Principal, action: ControllerAction) -> Result<DaoInfo, String> {
     ic::get_mut::<Data>()
         .dao_admin
-        .update_dao_controller(dao_id, action)
+        .update_dao_controller(canister_id, action)
         .await
 }
 
