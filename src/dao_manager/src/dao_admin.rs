@@ -58,7 +58,7 @@ impl DaoAdmin {
         canister_id: CanisterIdText,
         info: AddDaoInfo,
     ) -> Result<DaoInfo, String> {
-        // self.dao_exist(dao_id)?;
+
         let canister_id = Principal::from_text(canister_id).unwrap();
         let dao_info = DaoInfo {
             owner: ic_cdk::caller(),
@@ -73,7 +73,7 @@ impl DaoAdmin {
     }
     pub async fn create_dao(&mut self, info: CreateDaoOptions) -> Result<DaoInfo, String> {
         // create dao
-        // self.dao_exist(dao_id)?;
+
 
         let caller = ic_cdk::caller();
 
