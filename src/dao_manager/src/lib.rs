@@ -71,8 +71,8 @@ async fn get_pay_info() -> Result<TransactionItem, String> {
 
 #[update]
 #[candid::candid_method(update)]
-fn add_dao(canister_id: CanisterIdText, info: AddDaoInfo) -> Result<DaoInfo, String> {
-    ic::get_mut::<Data>().dao_admin.add_dao(canister_id, info)
+fn add_dao(canister_id: CanisterIdText) -> Result<DaoInfo, String> {
+    ic::get_mut::<Data>().dao_admin.add_dao(canister_id)
 }
 
 #[update]

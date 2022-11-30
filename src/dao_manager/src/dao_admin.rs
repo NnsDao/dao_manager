@@ -3,7 +3,7 @@ use crate::canister_manager::{
     nnsdao_reinstall_code, nnsdao_upgrade_code,
 };
 use crate::types::{
-    AddDaoInfo, CanisterIdText, ControllerAction, CreateDaoOptions, DaoInfo, DaoStatusCode,
+     CanisterIdText, ControllerAction, CreateDaoOptions, DaoInfo, DaoStatusCode,
 };
 use crate::Data;
 use candid::{Deserialize, Principal};
@@ -56,14 +56,13 @@ impl DaoAdmin {
     pub fn add_dao(
         &mut self,
         canister_id: CanisterIdText,
-        info: AddDaoInfo,
     ) -> Result<DaoInfo, String> {
 
         let canister_id = Principal::from_text(canister_id).unwrap();
         let dao_info = DaoInfo {
             owner: ic_cdk::caller(),
             canister_id,
-            controller: vec![canister_id],
+            controller: vec![ic_cdk::caller()],
             status: DaoStatusCode::Active,
             create_at: time(),
         };
