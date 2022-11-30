@@ -12,7 +12,6 @@ pub struct DaoInfo {
     pub status: DaoStatusCode,
     pub create_at:u64,
     // pub dao_type: String, // different Type of dao, such as education, music
-    pub tags: Vec<String>, // type
 }
 
 #[derive(Deserialize, Serialize, Clone, CandidType)]

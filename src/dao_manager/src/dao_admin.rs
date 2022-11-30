@@ -65,7 +65,6 @@ impl DaoAdmin {
             canister_id,
             controller: vec![canister_id],
             status: DaoStatusCode::Active,
-            tags: info.tags,
             create_at: time(),
         };
         self.dao_map.insert(canister_id, dao_info.clone());
@@ -106,7 +105,6 @@ impl DaoAdmin {
             canister_id,
             controller: vec![caller],
             status: DaoStatusCode::Active,
-            tags: info.tags,
             create_at: time()
             
         };
