@@ -7,6 +7,8 @@ use crate::types::{
 };
 use crate::Data;
 use candid::{Deserialize, Principal};
+use ic_cdk::api::time;
+use ic_cdk::caller;
 use ic_kit::interfaces::management::CanisterStatusResponse;
 use ic_kit::{ic, RejectionCode};
 use serde::Serialize;
@@ -66,8 +68,9 @@ impl DaoAdmin {
             owner: ic_cdk::caller(),
             canister_id,
             controller: vec![canister_id],
-            status: DaoStatusCode::Normal,
+            status: DaoStatusCode::Active,
             tags: info.tags,
+            create_at: time(),
         };
         self.dao_map.insert(dao_id, dao_info.clone());
         Ok(dao_info)
@@ -108,9 +111,11 @@ impl DaoAdmin {
             id: dao_id,
             owner: caller,
             canister_id,
-            controller: vec![canister_id],
-            status: DaoStatusCode::Normal,
+            controller: vec![caller],
+            status: DaoStatusCode::Active,
             tags: info.tags,
+            create_at: time()
+            
         };
         self.dao_map.insert(dao_id, dao_info.clone());
         // set transaction status 1
@@ -131,9 +136,10 @@ impl DaoAdmin {
             .get_mut(&dao_id)
             .expect("Current DAO does not exist");
 
-        // validate owner
-        if dao.owner != ic_cdk::caller() {
-            return Err(String::from("Only owners has permission to operate"));
+        // validate controller
+        if !dao.controller.contains(&caller()) {
+          return Err(String::from("Only owners has permission to operate"));
+
         }
         nnsdao_change_controller(dao.controller.clone(), dao.canister_id)
             .await
