@@ -64,7 +64,7 @@ impl DaoAdmin {
             canister_id,
             controller: vec![ic_cdk::caller()],
             status: DaoStatusCode::Active,
-            create_at: time(),
+            created_at: time(),
         };
         self.dao_map.insert(canister_id, dao_info.clone());
         Ok(dao_info)
@@ -104,7 +104,7 @@ impl DaoAdmin {
             canister_id,
             controller: vec![caller],
             status: DaoStatusCode::Active,
-            create_at: time()
+            created_at: time()
             
         };
         self.dao_map.insert(canister_id, dao_info.clone());

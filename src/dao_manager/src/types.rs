@@ -10,7 +10,7 @@ pub struct DaoInfo {
     pub canister_id: Principal,
     pub controller: Vec<Principal>,
     pub status: DaoStatusCode,
-    pub create_at:u64,
+    pub created_at:u64,
     // pub dao_type: String, // different Type of dao, such as education, music
 }
 
