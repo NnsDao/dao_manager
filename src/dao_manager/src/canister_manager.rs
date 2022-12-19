@@ -77,7 +77,7 @@ pub async fn nnsdao_install_code(
         wasm_module: WASM,
         arg,
     };
-    let _: () = ic::call(
+    ic::call(
         Principal::management_canister(),
         "install_code",
         (install_config,),

@@ -21,7 +21,7 @@ use std::string::String;
 use types::{ControllerAction, CreateDaoOptions, DaoInfo};
 
 use crate::canister::ledger::{ICPService, TransactionItem};
-use crate::types::{AddDaoInfo, CanisterIdText};
+use crate::types::{CanisterIdText, Dao};
 
 #[derive(Default)]
 pub struct Data {
@@ -42,18 +42,16 @@ pub struct DataV0 {
 
 #[query]
 #[candid::candid_method(query)]
-fn dao_list() -> Vec<DaoInfo> {
+fn dao_list() -> Dao {
     ic::get::<Data>().dao_admin.dao_list()
 }
 
-#[query]
-#[candid::candid_method(query)]
-async fn dao_status(
-    canister_id: CanisterIdText,
-) -> Result<CanisterStatusResponse, (RejectionCode, String)> {
+#[update]
+#[candid::candid_method(update)]
+async fn canister_status() -> Result<CanisterStatusResponse, (RejectionCode, String)> {
     ic::get::<Data>()
         .dao_admin
-        .dao_status(Principal::from_text(canister_id).unwrap())
+        .canister_status(ic_cdk::id())
         .await
 }
 
@@ -71,23 +69,29 @@ async fn get_pay_info() -> Result<TransactionItem, String> {
 
 #[update]
 #[candid::candid_method(update)]
-fn add_dao(canister_id: CanisterIdText) -> Result<DaoInfo, String> {
+fn add_dao(canister_id: CanisterIdText) -> Dao {
     ic::get_mut::<Data>().dao_admin.add_dao(canister_id)
 }
 
 #[update]
 #[candid::candid_method(update)]
-async fn create_dao(info: CreateDaoOptions) -> Result<DaoInfo, String> {
+async fn create_dao(info: CreateDaoOptions) -> Result<String, String> {
     ic::get_mut::<Data>().dao_admin.create_dao(info).await
 }
 
-#[update]
+#[update(guard = "is_owner")]
 #[candid::candid_method(update)]
-async fn update_dao_controller(canister_id: Principal, action: ControllerAction) -> Result<DaoInfo, String> {
+async fn update_dao_controller(action: ControllerAction) -> Result<(), String> {
     ic::get_mut::<Data>()
         .dao_admin
-        .update_dao_controller(canister_id, action)
+        .update_dao_controller(action)
         .await
+}
+
+#[update(guard = "is_owner")]
+#[candid::candid_method(update)]
+fn add_owner() -> Vec<Principal> {
+    ic::get_mut::<Data>().owners.add_owner(ic_cdk::caller())
 }
 
 #[query(guard = "is_owner")]

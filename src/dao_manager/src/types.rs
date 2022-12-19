@@ -6,28 +6,17 @@ pub type CanisterIdText = String;
 
 #[derive(Deserialize, Serialize, Clone, CandidType)]
 pub struct DaoInfo {
-    pub owner: Principal,
-    pub canister_id: Principal,
-    pub controller: Vec<Principal>,
-    pub status: DaoStatusCode,
-    pub created_at:u64,
-    // pub dao_type: String, // different Type of dao, such as education, music
+    pub canister_id: PrincipalText,
 }
 
 #[derive(Deserialize, Serialize, Clone, CandidType)]
 pub enum DaoStatusCode {
     Active,
-    Stopped
+    Stopped,
 }
 
 #[derive(Deserialize, Serialize, Default, Clone, CandidType)]
 pub struct CreateDaoOptions {
-    // name: String,                            // dao name
-    // poster: String,                          // dao poster
-    // avatar: String,                          // dao avatar
-    // intro: String,                           // dao intro
-    // option: Option<HashMap<String, String>>, // user custom expand field
-    pub tags: Vec<String>, // dao tags
     pub block_height: u64, // block height
     pub memo: u64,         // memo, used to validate transfer
 }
@@ -46,5 +35,7 @@ pub struct AddDaoInfo {
 pub enum ControllerAction {
     add(Principal),
     remove(Principal),
-    clear,
 }
+
+pub type PrincipalText = String;
+pub type Dao = Vec<PrincipalText>;
