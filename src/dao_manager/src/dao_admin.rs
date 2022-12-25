@@ -21,17 +21,17 @@ pub fn handle_tuple_err(err: (RejectionCode, String)) -> Result<(), String> {
 }
 
 impl DaoAdmin {
-    pub async fn upgrade_canister(&self) -> Result<(), (RejectionCode, String)> {
-        for canister_id in self.dao.iter() {
-            nnsdao_upgrade_code(Principal::from_text(canister_id).unwrap()).await?
-        }
+    pub async fn upgrade_canister(&self, cid: String) -> Result<(), (RejectionCode, String)> {
+        nnsdao_upgrade_code(Principal::from_text(cid).unwrap()).await?;
+        // for canister_id in self.dao.iter() {
+        // }
         Ok(())
     }
-    pub async fn reinstall_canister(&self) -> Result<(), (RejectionCode, String)> {
+    pub async fn reinstall_canister(&self, cid: String) -> Result<(), (RejectionCode, String)> {
         let caller = ic_cdk::caller();
-        for canister_id in self.dao.iter() {
-            nnsdao_reinstall_code(caller, Principal::from_text(canister_id).unwrap()).await?
-        }
+        nnsdao_reinstall_code(caller, Principal::from_text(cid).unwrap()).await?;
+        // for canister_id in self.dao.iter() {
+        // }
         Ok(())
     }
     pub async fn canister_status(

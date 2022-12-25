@@ -96,20 +96,20 @@ fn add_owner() -> Vec<Principal> {
 
 #[query(guard = "is_owner")]
 #[candid::candid_method(query)]
-fn get_owner() -> Vec<Principal> {
+fn get_owners() -> Vec<Principal> {
     ic::get::<Data>().owners.get_owners()
 }
 
 #[update(guard = "is_owner")]
 #[candid::candid_method(update)]
-async fn upgrade_canister() -> Result<(), (RejectionCode, String)> {
-    ic::get::<Data>().dao_admin.upgrade_canister().await
+async fn upgrade_canister(cid: String) -> Result<(), (RejectionCode, String)> {
+    ic::get::<Data>().dao_admin.upgrade_canister(cid).await
 }
 
 #[update(guard = "is_owner")]
 #[candid::candid_method(update)]
-async fn reinstall_canister() -> Result<(), (RejectionCode, String)> {
-    ic::get::<Data>().dao_admin.reinstall_canister().await
+async fn reinstall_canister(cid: String) -> Result<(), (RejectionCode, String)> {
+    ic::get::<Data>().dao_admin.reinstall_canister(cid).await
 }
 
 #[pre_upgrade]
